@@ -1,17 +1,14 @@
 package main
 
 import (
-	"fmt"
-	"net/http"
+	"github.com/gin-gonic/gin"
+	routes "api/routes"
 )
 
 func main() {
-	fmt.Println("start go api server!")
-	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-		w.Write([]byte("hello world!"))
-	})
-
-	http.ListenAndServe("0.0.0.0:8001", nil)
+	r := gin.Default()
+	route := routes.Router(r)
+	route.Run(":8080")
 }
 
 func hello() string {
