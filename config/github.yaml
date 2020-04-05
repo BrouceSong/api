@@ -1,3 +1,5 @@
 client_id: 7d1c70e613a33fa9178f
 client_secret: bab05f9d502c51c4082fc465d5d510192e02982c
 url: https://github.com/login/oauth/authorize?client_id=%s
+access_url: https://github.com/login/oauth/access_token
+user_url: https://api.github.com/user

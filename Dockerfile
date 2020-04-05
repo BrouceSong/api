@@ -8,6 +8,6 @@ WORKDIR /data/service
 #把上文编译好的api文件添加到镜像里
 ADD api /data/service
 #暴露容器内部端口
-EXPOSE 8001
+EXPOSE 8080
 #入口
 ENTRYPOINT ["./api"]

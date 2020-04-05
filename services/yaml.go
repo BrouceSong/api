@@ -9,6 +9,8 @@ type GitConf struct {
 	Client_id string `yaml:client_id`
 	Client_secret string `yaml:client_secret`
 	Url string `yaml:url`
+	Access_url string `yaml:access_url`
+	User_url string `yaml:user_url`
 }
 
 func GetGits() (setting *GitConf, e error) {
