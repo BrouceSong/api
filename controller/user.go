@@ -1,16 +1,17 @@
 package controller
 
 import (
-	"github.com/gin-gonic/gin"
 	s "api/services"
+	u "api/util"
+	"encoding/json"
 	"fmt"
+	"io/ioutil"
 	"net/http"
 	"net/url"
-	"time"
-	"io/ioutil"
-	"encoding/json"
 	"strings"
-	u "api/util"
+	"time"
+
+	"github.com/gin-gonic/gin"
 )
 
 type Data struct {
@@ -19,12 +20,12 @@ type Data struct {
 
 type Access struct {
 	Access_token string `json:"access_token"`
-	Token_type string `json:"token_type"`
-	Error string `json:"error"`
+	Token_type   string `json:"token_type"`
+	Error        string `json:"error"`
 }
 
 type User struct {
-	Id int `json:"id"`
+	Id       int    `json:"id"`
 	Username string `json:"login"`
 }
 
@@ -33,7 +34,7 @@ type Token struct {
 }
 
 //获取第三方跳转链接
-func Login(c *gin.Context)  {
+func Login(c *gin.Context) {
 	conf, err := s.GetGits()
 	if err != nil {
 		panic(err)
@@ -42,12 +43,12 @@ func Login(c *gin.Context)  {
 	data.Url = fmt.Sprintf(conf.Url, conf.Client_id)
 	c.JSON(200, gin.H{
 		"data": data,
-		"msg": "",
+		"msg":  "",
 	})
 }
 
 //第三方回调地址
-func Callback(c *gin.Context)  {
+func Callback(c *gin.Context) {
 	conf, err := s.GetGits()
 	if err != nil {
 		panic(err)
@@ -56,12 +57,12 @@ func Callback(c *gin.Context)  {
 	httpClient := &http.Client{
 		Timeout: 10 * time.Second,
 	}
-    access := url.Values{}
-    access.Set("client_id", conf.Client_id)
-    access.Set("client_secret", conf.Client_secret)
+	access := url.Values{}
+	access.Set("client_id", conf.Client_id)
+	access.Set("client_secret", conf.Client_secret)
 	access.Set("code", code)
 	url := fmt.Sprintf("%s?%s", conf.Access_url, access.Encode())
-    r, _ := http.NewRequest("POST", url, nil) // URL-encoded payload
+	r, _ := http.NewRequest("POST", url, nil) // URL-encoded payload
 	r.Header.Add("Content-Type", "application/x-www-form-urlencoded")
 	r.Header.Add("Accept", "application/json")
 	res, err1 := httpClient.Do(r)
@@ -73,22 +74,22 @@ func Callback(c *gin.Context)  {
 	if err2 != nil {
 		panic(err2)
 	}
-	var accs Access;
-    if err3 := json.Unmarshal([]byte(string(accRet)), &accs); err != nil {
+	var accs Access
+	if err3 := json.Unmarshal([]byte(string(accRet)), &accs); err != nil {
 		panic(err3)
 	}
-	fmt.Println(access.Encode(), strings.NewReader(string(accRet)),accs)
+	fmt.Println(access.Encode(), strings.NewReader(string(accRet)), accs)
 	if accs.Access_token == "" {
 		panic(string(accRet))
 	}
 	fmt.Printf("%+v", accs)
 	fmt.Println(accs, string(accRet))
-    requestGet, _:= http.NewRequest("GET", conf.User_url, nil)
+	requestGet, _ := http.NewRequest("GET", conf.User_url, nil)
 	token := fmt.Sprintf("token %s", accs.Access_token)
-    requestGet.Header.Add("Authorization", token)
-    requestGet.Header.Add("Accept", "application/json")
+	requestGet.Header.Add("Authorization", token)
+	requestGet.Header.Add("Accept", "application/json")
 
-    resp, err3 := httpClient.Do(requestGet)
+	resp, err3 := httpClient.Do(requestGet)
 	if err3 != nil {
 		panic(err3)
 	}
@@ -97,8 +98,8 @@ func Callback(c *gin.Context)  {
 	if err4 != nil {
 		panic(err4)
 	}
-	var users User;
-    if err5 := json.Unmarshal(userRet, &users); err != nil {
+	var users User
+	if err5 := json.Unmarshal(userRet, &users); err != nil {
 		panic(err5)
 	}
 	if users.Id == 0 {
@@ -106,29 +107,31 @@ func Callback(c *gin.Context)  {
 	}
 	fmt.Printf("%+v", users)
 	fmt.Println(users, string(userRet))
-    claims := &u.JWTClaims{
-        UserID: users.Id,
-        Username: users.Username,
-    }
-    claims.IssuedAt = time.Now().Unix()
-    claims.ExpiresAt = time.Now().Add(time.Second * time.Duration(3600)).Unix()
-    singedToken, err6 := u.GetToken(claims)
-    if err6 != nil {
+	claims := &u.JWTClaims{
+		UserID:   users.Id,
+		Username: users.Username,
+	}
+	claims.IssuedAt = time.Now().Unix()
+	claims.ExpiresAt = time.Now().Add(time.Second * time.Duration(3600)).Unix()
+	singedToken, err6 := u.GetToken(claims)
+	if err6 != nil {
 		panic(err6)
-    }
+	}
 	var tokens Token
 	tokens.Token = singedToken
 	c.JSON(200, gin.H{
 		"data": tokens,
-		"msg": "",
+		"msg":  "",
 	})
 }
 
-func GetUser(c *gin.Context){
-	token := "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE1ODYwNTMyOTQsImlhdCI6MTU4NjA0OTY5NCwidXNlcl9pZCI6MjA4NTMxNjksInVzZXJuYW1lIjoiQnJvdWNlU29uZyJ9.wF7aPloy0mZdLaAWwlwkFTuVxHpLZK_FBrq7Dz-lp_o"
+func GetUser(c *gin.Context) {
+	token := c.Query("token")
 	users, _ := u.VerifyToken(token)
+	fmt.Printf("%+v", users)
+	fmt.Printf("%s", token)
 	c.JSON(200, gin.H{
 		"data": users,
-		"msg": "",
+		"msg":  "",
 	})
 }
