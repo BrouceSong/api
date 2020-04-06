@@ -1,9 +1,10 @@
 package routes
 
 import (
-	"github.com/gin-gonic/gin"
 	c "api/controller"
 	m "api/middleware"
+
+	"github.com/gin-gonic/gin"
 )
 
 func Router(r *gin.Engine) *gin.Engine {
@@ -13,6 +14,8 @@ func Router(r *gin.Engine) *gin.Engine {
 		v1.GET("/login", c.Login)
 		v1.GET("/callback", c.Callback)
 		v1.GET("/user", c.GetUser)
+		post := v1.Group("/post")
+		post.GET("list", c.PostLists)
 	}
-    return r
+	return r
 }
