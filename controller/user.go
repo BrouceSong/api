@@ -112,7 +112,7 @@ func Callback(c *gin.Context) {
 		Username: users.Username,
 	}
 	claims.IssuedAt = time.Now().Unix()
-	claims.ExpiresAt = time.Now().Add(time.Second * time.Duration(3600)).Unix()
+	claims.ExpiresAt = time.Now().Add(time.Second * time.Duration(3600*7)).Unix()
 	singedToken, err6 := u.GetToken(claims)
 	if err6 != nil {
 		panic(err6)
